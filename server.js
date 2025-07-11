@@ -15,7 +15,7 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 const server = http.createServer(app);
-const io = socket.init(server); // ✅ La seule instance utilisée
+const io = socket.init(server); // 
 
 const PORT = process.env.PORT || 5000;
 
@@ -44,18 +44,18 @@ app.use('/api/chat', chatRoutes);
 const userSockets = {}; // Pour stocker les infos utilisateurs
 
 io.on('connection', (socket) => {
-  console.log(`✅ Socket connecté : ${socket.id}`);
+  console.log(` Socket connecté : ${socket.id}`);
 
   socket.on('join-user-room', ({ userId }) => {
     socket.join(userId);
-    console.log(`👤 Utilisateur dans la room : ${userId}`);
+    console.log(` Utilisateur dans la room : ${userId}`);
   });
 
   socket.on('message', (data) => {
     const { text, firstname, lastname, socketId, userId } = data;
     userSockets[socket.id] = { firstname, lastname, userId };
 
-    console.log(`📩 ${firstname} ${lastname} : ${text}`);
+    console.log(` ${firstname} ${lastname} : ${text}`);
 
     io.emit('admin-receive-message', {
       text,
@@ -72,14 +72,14 @@ io.on('connection', (socket) => {
   socket.on('admin-send-message', ({ userId, text }) => {
     if (userId) {
       io.to(userId).emit('admin-to-user', text);
-      console.log(`📤 Admin → ${userId} : ${text}`);
+      console.log(` Admin → ${userId} : ${text}`);
     } else {
-      console.warn('❌ Aucun userId fourni à admin-send-message');
+      console.warn('Aucun userId fourni à admin-send-message');
     }
   });
 
   socket.on('disconnect', () => {
-    console.log(`❌ Déconnexion : ${socket.id}`);
+    console.log(` Déconnexion : ${socket.id}`);
     delete userSockets[socket.id];
   });
 });
@@ -90,4 +90,4 @@ app.use((req, res) => {
 });
 
 // Démarrage
-server.listen(PORT, () => console.log(`🚀 Serveur sur http://localhost:${PORT}`));
+server.listen(PORT, () => console.log(` Serveur sur http://localhost:${PORT}`));
