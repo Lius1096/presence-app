@@ -13,7 +13,7 @@ RUN npm install
 # Étape 5 : Copier tous les fichiers dans le conteneur
 COPY . .
 
-# Étape 6 : Compiler Tailwind CSS (optionnel si déjà compilé localement)
+# Étape 6 : Compiler Tailwind CSS 
 # RUN npm run build-css
 
 # Étape 7 : Exposer le port de l'application
