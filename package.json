@@ -1,0 +1,24 @@
+{
+  "name": "presence-app",
+  "version": "1.0.0",
+  "description": "1. Cloner le repo\r 2. Copier `.env.example` en `.env` et configurer `MONGODB_URI`, `JWT_SECRET`, SMTP etc.\r 3. Installer les dépendances: `npm install`\r 4. Créer l’admin: `node seed-admin.js`\r 5. Lancer le serveur: `npm start`",
+  "main": "postcss.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "build-css": "tailwindcss -i ./public/src.css -o ./public/dist.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.11"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.11",
+    "dotenv": "^17.2.0",
+    "socket.io": "^4.8.1"
+  }
+}

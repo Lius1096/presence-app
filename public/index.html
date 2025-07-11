@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>App Présence</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6">
+  <div id="main-content"></div>
+  <!-- Auth Box + Dashboard -->
+  <div id="auth-box" class="hidden fixed inset-0 bg-white bg-opacity-95 z-50 flex items-center justify-center p-4">
+    <div id="auth-container" class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative space-y-6">
+
+      <!-- Bouton fermeture -->
+      <button onclick="closeDashboard()" class="absolute top-3 right-4 text-3xl text-gray-600 hover:text-black">
+        &times;
+      </button>
+
+      <!-- ----------- AUTH ----------- -->
+      <div id="auth-section">
+        <h1 class="text-3xl font-bold text-center text-blue-600">Bienvenue</h1>
+
+        <!-- Login Form -->
+        <form id="login-form" class="space-y-4">
+          <h2 class="text-xl font-semibold text-center">Se connecter</h2>
+          <input id="login-email" type="email" autocomplete="email" placeholder="Email"
+            class="w-full p-2 border rounded" required />
+          <input id="login-password" type="password" autocomplete="current-password" placeholder="Mot de passe"
+            class="w-full p-2 border rounded" required />
+          <button type="submit" class="w-full bg-green-600 text-white py-2 rounded">Connexion</button>
+          <p class="text-sm text-center text-gray-500">
+            Pas encore de compte ?
+            <a href="#" onclick="switchForm('register'); return false;" class="text-blue-500">S'inscrire</a>
+          </p>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="hidden space-y-4">
+          <h2 class="text-xl font-semibold text-center">Créer un compte</h2>
+          <input id="reg-firstname" type="text" placeholder="Prénom" class="w-full p-2 border rounded" required />
+          <input id="reg-lastname" type="text" placeholder="Nom" class="w-full p-2 border rounded" required />
+          <input id="reg-email" type="email" autocomplete="email" placeholder="Email" class="w-full p-2 border rounded"
+            required />
+          <input id="reg-phone" type="text" placeholder="Téléphone" class="w-full p-2 border rounded" />
+          <input id="reg-password" type="password" autocomplete="new-password" placeholder="Mot de passe"
+            class="w-full p-2 border rounded" required />
+          <input id="reg-confirm-password" type="password" autocomplete="new-password"
+            placeholder="Confirmer le mot de passe" class="w-full p-2 border rounded" required />
+          <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded">S'inscrire</button>
+          <p class="text-sm text-center text-gray-500">
+            Déjà un compte ?
+            <a href="#" onclick="switchForm('login'); return false;" class="text-blue-500">Se connecter</a>
+          </p>
+        </form>
+
+        <!-- Verify Code Form -->
+        <form id="verify-form" class="hidden space-y-4">
+          <h2 class="text-xl font-semibold text-center">Vérifier le code</h2>
+          <input id="verify-code" type="text" placeholder="Code de vérification" class="w-full p-2 border rounded"
+            required />
+          <button type="submit" class="w-full bg-purple-600 text-white py-2 rounded">Vérifier</button>
+          <button type="button" id="resend-code" class="w-full mt-2 bg-gray-300 text-gray-700 py-2 rounded">
+            Rédemander un nouveau code
+          </button>
+        </form>
+
+        <p id="message" class="text-center text-sm text-red-500"></p>
+      </div>
+
+      <!-- ----------- DASHBOARD ----------- -->
+      <div id="user-section" class="hidden space-y-4">
+        <h2 class="text-2xl font-bold mb-4">
+          <i class="fas fa-clock mr-2 text-gray-700"></i> Pointage de présence
+        </h2>
+
+        <p id="status-message" class="mb-4 text-lg"></p>
+
+        <button id="btn-present" class="bg-green-600 text-white px-4 py-2 rounded mr-2">
+          <i class="fas fa-check-circle"></i> Présent à l'heure
+        </button>
+        <button id="btn-late" class="bg-yellow-600 text-white px-4 py-2 rounded">
+          <i class="fas fa-clock"></i> Retard
+        </button>
+        <button id="btn-remote-request" class="bg-purple-600 text-white px-4 py-2 rounded mt-4">
+          <i class="fas fa-satellite-dish"></i> Signer à distance
+        </button>
+        <button id="btn-absent" class="bg-red-600 text-white px-4 py-2 rounded ml-2 hidden">
+          <i class="fas fa-times-circle"></i> Marquer absent
+        </button>
+
+        <div id="status-result" class="mt-4 text-base text-gray-700"></div>
+        <p class="mt-4 text-sm text-gray-500">* Autorisez votre position pour géolocalisation</p>
+
+        <button class="mt-6 bg-blue-500 text-white px-4 py-2 rounded" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i> Déconnexion
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Floating reopen button -->
+  <button id="open-dashboard-btn"
+    class="hidden fixed bottom-6 right-14 bg-green-600 text-white rounded-full shadow-lg px-4 py-3 text-sm z-40"
+    onclick="openDashboard()">
+    Emarger
+  </button>
+
+
+
+  <script>
+    let token = null;
+    let userRole = null;
+    let user = null;
+
+    const parseJwt = (token) => {
+      try {
+        return JSON.parse(atob(token.split('.')[1]));
+      } catch (e) {
+        return null;
+      }
+    };
+
+    const showMessage = (text, color = 'red') => {
+      const msg = document.getElementById('message');
+      msg.textContent = text;
+      msg.className = `text-center text-sm mt-4 text-${color}-500`;
+    };
+
+    const switchForm = (form) => {
+      ['register', 'login', 'verify'].forEach(id => {
+        document.getElementById(id + '-form').classList.add('hidden');
+      });
+      document.getElementById(form + '-form').classList.remove('hidden');
+      showMessage('');
+    };
+
+    const redirectUser = () => {
+      document.getElementById('auth-section')?.classList.add('hidden');   // Cache les formulaires
+      document.getElementById('user-section')?.classList.remove('hidden'); // Affiche le dashboard
+      document.getElementById('auth-box')?.classList.remove('hidden');     // Affiche la modale
+      document.getElementById('open-dashboard-btn')?.classList.add('hidden'); // Cache le bouton flottant
+      initAttendance?.();
+      checkTodayStatus?.();
+    };
+
+    function openDashboard() {
+      document.getElementById('auth-box')?.classList.remove('hidden');      // Affiche la modale
+      document.getElementById('user-section')?.classList.remove('hidden');  // Affiche le dashboard
+      document.getElementById('auth-section')?.classList.add('hidden');     // Cache les formulaires
+      document.getElementById('open-dashboard-btn')?.classList.add('hidden'); // Cache le bouton flottant
+      initAttendance?.();
+      checkTodayStatus?.();
+    }
+
+    // Une fois home.html injecté
+    setTimeout(() => {
+      const signInBtn = document.getElementById('sign-in');
+      if (signInBtn) {
+        signInBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const token = localStorage.getItem('token');
+
+          if (token) {
+            //  Utiliser la fonction déjà prévue pour la redirection
+            redirectUser();
+          } else {
+            //  Pas connecté → afficher le formulaire de login + alerte
+            document.getElementById('auth-box')?.classList.remove('hidden');
+            document.getElementById('auth-section')?.classList.remove('hidden');
+            document.getElementById('user-section')?.classList.add('hidden');
+            switchForm?.('login');
+            alert('Veuillez vous connecter pour signer votre présence.');
+          }
+        });
+      }
+
+      // ✅ Bouton "Back to top"
+      const backToTop = document.getElementById('back-to-top');
+      if (backToTop) {
+        // Afficher ou masquer en fonction du scroll
+        window.addEventListener('scroll', () => {
+          if (window.scrollY > 100) {
+            backToTop.classList.remove('hidden');
+          } else {
+            backToTop.classList.add('hidden');
+          }
+        });
+
+        // Scroll vers le haut au clic
+        backToTop.addEventListener('click', () => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
+
+    }, 300);
+
+
+
+    function closeDashboard() {
+      document.getElementById('auth-box')?.classList.add('hidden');          // Ferme la modale
+      if (localStorage.getItem('token')) {
+        document.getElementById('open-dashboard-btn')?.classList.remove('hidden'); // Affiche le bouton flottant
+      }
+    }
+
+
+
+
+    const logout = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      sessionStorage.removeItem('pendingEmail');
+      document.getElementById('user-section')?.classList.add('hidden');     // Cache le dashboard
+      document.getElementById('auth-section')?.classList.remove('hidden');  // Affiche les formulaires
+      document.getElementById('auth-box')?.classList.remove('hidden');      // Affiche la modale
+      document.getElementById('open-dashboard-btn')?.classList.add('hidden'); // Cache bouton flottant
+      switchForm('login');
+    };
+
+
+
+    window.onload = () => {
+      token = localStorage.getItem('token');
+      const savedUser = localStorage.getItem('user');
+      if (token && savedUser) {
+        const payload = parseJwt(token);
+        user = JSON.parse(savedUser);
+        if (payload && payload.role && user) {
+          userRole = payload.role;
+          redirectUser();
+        } else {
+          logout();
+        }
+      } else {
+        switchForm('login');
+      }
+    };
+
+    document.getElementById('register-form').onsubmit = async e => {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        firstname: form['reg-firstname'].value.trim(),
+        lastname: form['reg-lastname'].value.trim(),
+        email: form['reg-email'].value.trim(),
+        phone: form['reg-phone'].value.trim(),
+        password: form['reg-password'].value.trim(),
+        confirmPassword: form['reg-confirm-password'].value.trim(),
+      };
+
+      if (!data.firstname || !data.lastname || !data.email || !data.password || !data.confirmPassword) {
+        return showMessage("Tous les champs sont obligatoires.");
+      }
+
+      if (data.password !== data.confirmPassword) {
+        return showMessage("Les mots de passe ne correspondent pas.");
+      }
+
+      showMessage("Envoi en cours...", 'blue');
+      try {
+        const res = await fetch('/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (!res.ok) return showMessage(result.error || "Erreur lors de l'inscription");
+
+        sessionStorage.setItem('pendingEmail', data.email);
+        switchForm('verify');
+        showMessage("Code envoyé, vérifiez votre email", 'green');
+      } catch {
+        showMessage("Erreur réseau ou serveur");
+      }
+    };
+
+    document.getElementById('login-form').onsubmit = async e => {
+      e.preventDefault();
+      const form = e.target;
+      const email = form['login-email'].value.trim();
+      const password = form['login-password'].value.trim();
+
+      showMessage("Connexion...", 'blue');
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const result = await res.json();
+        if (!res.ok) return showMessage(result.error || "Erreur de connexion");
+
+        token = result.token;
+        localStorage.setItem('token', token);
+
+        const payload = parseJwt(token);
+        if (!payload || !payload.role || !payload.user) return showMessage("Token invalide");
+
+        userRole = payload.role;
+        user = payload.user;
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('firstname', user.firstname);
+        localStorage.setItem('lastname', user.lastname);
+
+        redirectUser();
+      } catch {
+        showMessage("Erreur réseau ou serveur");
+      }
+    };
+
+    // Soumission du formulaire de vérification
+    document.getElementById('verify-form').onsubmit = async e => {
+      e.preventDefault();
+      const email = sessionStorage.getItem('pendingEmail');
+      const code = e.target['verify-code'].value.trim();
+
+      if (!email) {
+        showMessage("Aucun email à vérifier.");
+        return switchForm('register');
+      }
+
+      showMessage("Vérification en cours...", 'blue');
+      try {
+        const res = await fetch('/auth/verify-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, code })
+        });
+        const result = await res.json();
+        if (!res.ok) return showMessage(result.error || "Code invalide");
+
+        token = result.token;
+        localStorage.setItem('token', token);
+
+        const payload = parseJwt(token);
+        if (!payload || !payload.role || !payload.user) return showMessage("Token invalide");
+
+        userRole = payload.role;
+        user = payload.user;
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('firstname', user.firstname);
+        localStorage.setItem('lastname', user.lastname);
+
+        redirectUser();
+      } catch {
+        showMessage("Erreur réseau ou serveur");
+      }
+    };
+
+    // Bouton pour redemander un nouveau code
+    document.getElementById('resend-code').onclick = async () => {
+      const email = sessionStorage.getItem('pendingEmail');
+      if (!email) {
+        showMessage("Aucun email enregistré pour renvoyer le code.");
+        return switchForm('register');
+      }
+
+      showMessage("Envoi du nouveau code...", 'blue');
+      try {
+        const res = await fetch('/auth/resend-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const result = await res.json();
+
+        if (!res.ok) {
+          showMessage(result.error || "Erreur lors de la demande du nouveau code.");
+          return;
+        }
+
+        showMessage("Nouveau code envoyé à votre email !");
+      } catch {
+        showMessage("Erreur réseau ou serveur lors du renvoi du code.");
+      }
+    };
+
+
+    // function initAttendance() {
+    //   const btnPresent = document.getElementById('btn-present');
+    //   const btnLate = document.getElementById('btn-late');
+    //   const status = document.getElementById('status-message');
+
+    //   if (!navigator.geolocation) {
+    //     status.innerHTML = `<i class="fas fa-times-circle text-red-500"></i> Géolocalisation non supportée.`;
+    //     btnPresent.disabled = true;
+    //     btnLate.disabled = true;
+    //     return;
+    //   }
+
+    //   status.innerHTML = `<i class="fas fa-map-marker-alt text-blue-500"></i> Récupération de la position...`;
+
+    //   navigator.geolocation.getCurrentPosition(
+    //     (position) => {
+    //       status.innerHTML = `<i class="fas fa-check-circle text-green-500"></i> Position détectée. Vous pouvez pointer.`;
+    //       btnPresent.disabled = false;
+    //       btnLate.disabled = false;
+
+    //       btnPresent.onclick = () => handleAttendance('present', position);
+    //       btnLate.onclick = () => handleAttendance('late', position);
+    //     },
+    //     (error) => {
+    //       let message = `<i class="fas fa-exclamation-triangle text-yellow-500"></i> Erreur de géolocalisation.`;
+    //       if (error.code === 1) message = `<i class="fas fa-lock text-red-500"></i> Autorisation refusée.`;
+    //       else if (error.code === 2) message = `<i class="fas fa-location-slash text-red-500"></i> Position indisponible.`;
+    //       else if (error.code === 3) message = `<i class="fas fa-clock text-yellow-500"></i> Temps de localisation dépassé.`;
+
+    //       status.innerHTML = message;
+    //       btnPresent.disabled = true;
+    //       btnLate.disabled = true;
+    //     }
+    //   );
+    //   document.getElementById('btn-remote-request').onclick = async () => {
+    //     const now = new Date();
+    //     const hours = now.getHours();
+    //     const minutes = now.getMinutes();
+    //     const isBefore945 = hours < 9 || (hours === 9 && minutes < 45);
+
+    //     try {
+    //       const res = await fetch('/pointage/request-remote', {
+    //         method: 'POST',
+    //         headers: {
+    //           'Content-Type': 'application/json',
+    //           Authorization: `Bearer ${token}`
+    //         },
+    //         body: JSON.stringify({
+    //           userId: user._id,
+    //           firstname: user.firstname,
+    //           lastname: user.lastname,
+    //           requestedStatus: isBefore945 ? 'present' : 'late'
+    //         })
+    //       });
+
+    //       const result = await res.json();
+    //       if (res.ok) {
+    //         document.getElementById('status-message').innerHTML = `<i class="fas fa-paper-plane text-blue-500"></i> Demande envoyée à l'admin. En attente d'approbation...`;
+    //       } else {
+    //         document.getElementById('status-message').innerHTML = `<i class="fas fa-times-circle text-red-500"></i> ${result.error || "Erreur lors de l'envoi"}`;
+    //       }
+    //     } catch (err) {
+    //       document.getElementById('status-message').innerHTML = `<i class="fas fa-wifi text-red-500"></i> Erreur réseau`;
+    //     }
+    //   };
+
+    // }
+
+    function initAttendance() {
+      const btnPresent = document.getElementById('btn-present');
+      const btnLate = document.getElementById('btn-late');
+      const status = document.getElementById('status-message');
+      const btnRemote = document.getElementById('btn-remote-request');
+
+      if (!navigator.geolocation) {
+        status.innerHTML = `<i class="fas fa-times-circle text-red-500"></i> Géolocalisation non supportée.`;
+        btnPresent.disabled = true;
+        btnLate.disabled = true;
+        return;
+      }
+
+      // ✅ Action utilisateur : clic => déclenche la géolocalisation
+      btnPresent.onclick = () => getLocationAndSend('present');
+      btnLate.onclick = () => getLocationAndSend('late');
+
+      // ✅ Bouton "Signer à distance"
+      btnRemote.onclick = async () => {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const isBefore945 = hours < 9 || (hours === 9 && minutes < 45);
+
+        try {
+          const res = await fetch('/pointage/request-remote', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              userId: user._id,
+              firstname: user.firstname,
+              lastname: user.lastname,
+              requestedStatus: isBefore945 ? 'present' : 'late'
+            })
+          });
+
+          const result = await res.json();
+          if (res.ok) {
+            status.innerHTML = `<i class="fas fa-paper-plane text-blue-500"></i> Demande envoyée à l'admin. En attente d'approbation...`;
+          } else {
+            status.innerHTML = `<i class="fas fa-times-circle text-red-500"></i> ${result.error || "Erreur lors de l'envoi"}`;
+          }
+        } catch (err) {
+          status.innerHTML = `<i class="fas fa-wifi text-red-500"></i> Erreur réseau`;
+        }
+      };
+    }
+
+    // ✅ Fonction déclenchée uniquement par clic utilisateur
+    function getLocationAndSend(type) {
+      const status = document.getElementById('status-message');
+      status.innerHTML = `<i class="fas fa-map-marker-alt text-blue-500"></i> Récupération de la position...`;
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          status.innerHTML = `<i class="fas fa-check-circle text-green-500"></i> Position détectée. Envoi du pointage...`;
+          handleAttendance(type, position);
+        },
+        (error) => {
+          let message = `<i class="fas fa-exclamation-triangle text-yellow-500"></i> Erreur de géolocalisation.`;
+          if (error.code === 1) message = `<i class="fas fa-lock text-red-500"></i> Autorisation refusée.`;
+          else if (error.code === 2) message = `<i class="fas fa-location-slash text-red-500"></i> Position indisponible.`;
+          else if (error.code === 3) message = `<i class="fas fa-clock text-yellow-500"></i> Temps de localisation dépassé.`;
+          status.innerHTML = message;
+        }
+      );
+    }
+
+
+    async function handleAttendance(type, position) {
+      const status = document.getElementById('status-message');
+      status.innerHTML = `<i class="fas fa-spinner fa-spin text-gray-500"></i> Envoi du pointage...`;
+
+      try {
+        const res = await fetch('/pointage/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            userId: user._id,
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            status: type
+          })
+        });
+
+        const text = await res.text();
+        let result;
+
+        try {
+          result = JSON.parse(text);
+        } catch {
+          result = { error: text || "Erreur inconnue" };
+        }
+
+        if (!res.ok) {
+          const errorMsg = result.error || "Erreur inconnue.";
+          status.innerHTML = `<i class="fas fa-times-circle text-red-500"></i> ${errorMsg}`;
+          return;
+        }
+
+        const label = result.status === 'present' ? 'Présent' :
+          result.status === 'late' ? 'En retard' :
+            result.status === 'remote' ? 'Remote' : result.status;
+
+        status.innerHTML = `<i class="fas fa-check-circle text-green-500"></i> Pointage enregistré : ${label}`;
+      } catch (err) {
+        console.error('Erreur réseau:', err);
+        status.innerHTML = `<i class="fas fa-wifi text-red-500"></i> Erreur de connexion au serveur.`;
+      }
+    }
+
+    async function checkTodayStatus() {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user'));
+      const statusResult = document.getElementById('status-result');
+      const statusMsg = document.getElementById('status-message');
+
+      if (!token || !user) return;
+
+      try {
+        const res = await fetch(`/pointage/today?userId=${user._id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.status && data.status !== 'absent') {
+          let label = data.status === 'present'
+            ? '🟩 Présent à l\'heure'
+            : data.status === 'late'
+              ? '🟧 En retard'
+              : data.status === 'remote'
+                ? '📡 Pointé à distance'
+                : data.status;
+
+          // Affiche le statut et désactive les boutons
+          statusResult.innerHTML = `<i class="fas fa-user-check text-green-500"></i> Vous avez déjà pointé : <strong>${label}</strong>`;
+          statusMsg.textContent = 'Pointage déjà effectué.';
+          document.getElementById('btn-present').disabled = true;
+          document.getElementById('btn-late').disabled = true;
+        } else {
+          statusResult.innerHTML = '';
+          statusMsg.textContent = 'Vous n’avez pas encore pointé aujourd’hui.';
+          document.getElementById('btn-present').disabled = false;
+          document.getElementById('btn-late').disabled = false;
+        }
+      } catch (error) {
+        console.error('Erreur lors de la vérification du statut :', error);
+        statusResult.innerHTML = `<i class="fas fa-exclamation-circle text-red-500"></i> Erreur de connexion.`;
+      }
+    }
+
+    // Appel automatique quand la section user s'affiche
+    document.addEventListener('DOMContentLoaded', () => {
+      const userSection = document.getElementById('user-section');
+      if (userSection) checkTodayStatus();
+    });
+
+  </script>
+
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      fetch('home.html')
+        .then(res => res.text())
+        .then(html => {
+          const mainContent = document.getElementById('main-content');
+          mainContent.innerHTML = html;
+          setTimeout(() => {
+            document.dispatchEvent(new Event('homeReady')); 
+          }, 300);
+
+          // Attendre que #account-btn soit bien injecté
+          const interval = setInterval(() => {
+            const btn = document.getElementById('account-btn');
+            if (btn) {
+              clearInterval(interval);
+
+              const token = localStorage.getItem('token');
+              const isLoggedIn = !!token;
+
+              // Met à jour dynamiquement le texte du bouton
+              btn.textContent = isLoggedIn ? 'Mon pointage' : 'Mon compte';
+
+              // Écoute du clic
+              btn.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                if (isLoggedIn) {
+                  // Si connecté, afficher directement le tableau de bord
+                  document.getElementById('auth-box')?.classList.add('hidden');
+                  document.getElementById('user-section')?.classList.remove('hidden');
+                  initAttendance?.(); // initialiser le pointage si fonction disponible
+                } else {
+                  // Sinon, afficher le formulaire de login
+                  document.getElementById('auth-box')?.classList.remove('hidden');
+                  switchForm?.('login');
+                }
+              });
+            }
+          }, 100); // vérifie toutes les 100ms jusqu'à trouver le bouton
+        })
+        .catch(err => console.error("Erreur de chargement home.html :", err));
+    });
+  </script>
+
+  <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+
+ 
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const API_BASE = location.hostname === 'localhost'
+        ? 'http://localhost:5000'
+        : 'https://ton-backend.com'; // à adapter
+
+      fetch('home.html')
+        .then(res => res.text())
+        .then(html => {
+          document.getElementById('main-content').innerHTML = html;
+
+          setTimeout(() => {
+            //  CONTACT FORM
+            const contactForm = document.getElementById('contact-form');
+            if (contactForm) {
+              contactForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const data = {
+                  name: contactForm.name.value,
+                  email: contactForm.email.value,
+                  message: contactForm.message.value,
+                };
+                try {
+                  const res = await fetch(`${API_BASE}/api/contact`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                  });
+                  alert(res.ok ? 'Message envoyé !' : 'Erreur lors de l’envoi.');
+                  if (res.ok) contactForm.reset();
+                } catch {
+                  alert('Erreur réseau.');
+                }
+              });
+            }
+
+            //  SOCKET.IO CHATBOT
+            const socket = io(API_BASE);
+            const chatBtn = document.getElementById('open-chat-btn');
+            const chatBox = document.getElementById('chat-box');
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const chatMessages = document.getElementById('chat-messages');
+            const closeBtn = document.getElementById('close-chat-btn');
+
+            //  Identité utilisateur
+            const user = JSON.parse(localStorage.getItem('user'));
+            const firstname = user?.firstname || 'Utilisateur';
+            const lastname = user?.lastname || '';
+            const userId = user?._id || socket.id;
+
+            //  Rejoindre la room unique (par userId)
+            socket.emit('join-user-room', { userId });
+
+            //  Ouvrir / fermer la boîte de chat
+            if (chatBtn && chatBox) {
+              chatBtn.addEventListener('click', () => chatBox.classList.remove('hidden'));
+            }
+            if (closeBtn && chatBox) {
+              closeBtn.addEventListener('click', () => chatBox.classList.add('hidden'));
+            }
+
+            //  Envoi de message
+            if (chatForm) {
+              chatForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const msg = chatInput.value.trim();
+                if (!msg) return;
+
+                socket.emit('message', {
+                  text: msg,
+                  firstname,
+                  lastname,
+                  socketId: socket.id,
+                  userId // important pour que le serveur sache à qui répondre
+                });
+
+                appendMessage('Vous', msg);
+                chatInput.value = '';
+              });
+
+              socket.on('chat reply', (msg) => appendMessage('Bot', msg));
+              socket.on('admin-to-user', (msg) => appendMessage('Admin', msg));
+
+              function appendMessage(sender, msg) {
+                const div = document.createElement('div');
+                div.innerHTML = `<strong>${sender} :</strong> ${msg}`;
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+              }
+            }
+
+          }, 300);
+        })
+        .catch(err => console.error('Erreur de chargement de home.html :', err));
+    });
+  </script>
+
+  <script>
+    // Affiche/Masque le bouton en fonction du scroll
+    window.addEventListener('scroll', () => {
+      const btn = document.getElementById('back-to-top');
+      if (window.scrollY > 100) {
+        btn.classList.remove('hidden');
+      } else {
+        btn.classList.add('hidden');
+      }
+    });
+
+    // Fait défiler en haut doucement au clic
+    document.getElementById('back-to-top').addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+  </script>
+
+  <!-- cookies -->
+ <script>
+  // Déclenché quand home.html est prêt
+  document.addEventListener('homeReady', () => {
+    const banner = document.getElementById('cookie-banner');
+    const modal = document.getElementById('cookie-modal');
+    const preferencesForm = document.getElementById('cookie-preferences-form');
+
+    if (!banner || !modal || !preferencesForm) return;
+
+    const hasConsent = localStorage.getItem('cookieConsent');
+
+    // ⏱ Affiche automatiquement la bannière après 10 secondes si pas encore accepté/refusé
+    if (!hasConsent) {
+      setTimeout(() => {
+        banner.classList.remove('hidden');
+
+        // ⏳ Auto-fermeture après 20s si aucune interaction
+        setTimeout(() => {
+          if (!localStorage.getItem('cookieConsent')) {
+            banner.classList.add('hidden');
+          }
+        }, 20000); // 20s
+      }, 10000); // 10s
+    }
+
+    // Bouton "Tout accepter"
+    document.getElementById('cookie-accept-all').onclick = () => {
+      localStorage.setItem('cookieConsent', JSON.stringify({
+        analytics: true,
+        marketing: true
+      }));
+      banner.classList.add('hidden');
+    };
+
+    // Bouton "Refuser"
+    document.getElementById('cookie-decline-all').onclick = () => {
+      localStorage.setItem('cookieConsent', JSON.stringify({
+        analytics: false,
+        marketing: false
+      }));
+      banner.classList.add('hidden');
+    };
+
+    // Bouton "Gérer"
+    document.getElementById('cookie-manage').onclick = () => {
+      banner.classList.add('hidden');
+      modal.classList.remove('hidden');
+    };
+
+    // Fermer la modale (croix ou Annuler)
+    document.getElementById('close-cookie-modal').onclick =
+    document.getElementById('cancel-cookie-settings').onclick = () => {
+      modal.classList.add('hidden');
+    };
+
+    // Soumission des préférences
+    preferencesForm.onsubmit = (e) => {
+      e.preventDefault();
+      const formData = new FormData(preferencesForm);
+      const settings = {
+        analytics: formData.get('analytics') === 'on',
+        marketing: formData.get('marketing') === 'on'
+      };
+      localStorage.setItem('cookieConsent', JSON.stringify(settings));
+      modal.classList.add('hidden');
+    };
+  });
+</script>
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

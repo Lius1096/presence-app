@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin – Gestion Présence</title>
+  <!-- Font Awesome + Tailwind -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<style>
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+</style>
+
+
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6">
+    
+
+  <!-- Auth Box Admin -->
+  <div id="admin-auth" class="w-full max-w-md bg-white p-8 rounded-lg shadow">
+    <h1 id="admin-auth-title" class="text-3xl font-bold text-center text-red-600 mb-6">Admin Login</h1>
+
+    <!-- Login Form -->
+    <form id="admin-login-form" class="space-y-4">
+      <input id="admin-email" type="email" placeholder="Email" class="w-full p-2 border rounded" required />
+      <input id="admin-password" type="password" placeholder="Mot de passe" class="w-full p-2 border rounded"
+        required />
+      <button type="submit" class="w-full bg-red-600 text-white py-2 rounded">
+        <i class="fas fa-sign-in-alt"></i> Se connecter
+      </button>
+      <p class="text-sm text-center text-gray-500">
+        Pas encore de compte ? <a href="#" id="show-register" class="text-red-500">S'inscrire</a>
+      </p>
+      <p id="admin-login-msg" class="text-center text-sm text-red-500 mt-2"></p>
+    </form>
+
+    <!-- Register Form -->
+    <form id="admin-register-form" class="hidden space-y-4">
+      <input id="admin-reg-firstname" type="text" placeholder="Prénom" class="w-full p-2 border rounded" required />
+      <input id="admin-reg-lastname" type="text" placeholder="Nom" class="w-full p-2 border rounded" required />
+      <input id="admin-reg-email" type="email" placeholder="Email" class="w-full p-2 border rounded" required />
+      <input id="admin-reg-phone" type="text" placeholder="Téléphone" class="w-full p-2 border rounded" required />
+      <input id="admin-reg-password" type="password" placeholder="Mot de passe" class="w-full p-2 border rounded"
+        required />
+      <input id="admin-reg-confirm-password" type="password" placeholder="Confirmer le mot de passe"
+        class="w-full p-2 border rounded" required />
+      <button type="submit" class="w-full bg-green-600 text-white py-2 rounded">
+        <i class="fas fa-user-plus"></i> S'inscrire
+      </button>
+      <p class="text-sm text-center text-gray-500">
+        Déjà un compte ? <a href="#" id="show-login" class="text-red-500">Se connecter</a>
+      </p>
+      <p id="admin-register-msg" class="text-center text-sm text-red-500 mt-2"></p>
+    </form>
+
+    <!-- Verify Code Form -->
+    <form id="admin-verify-form" class="hidden space-y-4">
+      <h2 class="text-xl font-semibold">Vérifier le code</h2>
+      <input id="admin-verify-code" type="text" placeholder="Code de vérification" class="w-full p-2 border rounded"
+        required />
+      <button type="submit" class="w-full bg-purple-600 text-white py-2 rounded">Vérifier</button>
+      <p id="admin-verify-msg" class="text-center text-sm text-red-500 mt-2"></p>
+    </form>
+  </div>
+
+  <!-- Dashboard Admin -->
+  <section id="admin-dashboard" class="hidden w-full max-w-5xl bg-white p-8 rounded-lg shadow mt-8">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold">Tableau de bord Admin</h2>
+      <button id="btn-logout-admin" class="bg-gray-600 text-white px-4 py-2 rounded">
+        <i class="fas fa-sign-out-alt"></i> Déconnexion
+      </button>
+    </div>
+
+    <!-- Filtre par date -->
+    <div class="mb-4 flex items-center">
+      <label for="filter-date" class="mr-2 font-semibold">Filtrer par date :</label>
+      <input type="date" id="filter-date" class="border p-1 rounded mr-2" />
+      <button id="btn-filter" class="bg-blue-600 text-white px-3 py-1 rounded">
+        <i class="fas fa-filter"></i> Filtrer
+      </button>
+    </div>
+
+    <!-- Liste des utilisateurs -->
+    <div class="overflow-x-auto">
+      <table class="w-full table-auto border-collapse border border-gray-300">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="border px-2 py-1">Nom</th>
+            <th class="border px-2 py-1">Email</th>
+            <th class="border px-2 py-1">Statut</th>
+            <th class="border px-2 py-1">Date</th>
+            <th class="border px-2 py-1">Téléphone</th>
+            <th class="border px-2 py-1">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="user-list"></tbody>
+      </table>
+    </div>
+    <p id="admin-msg" class="mt-4 text-sm text-red-600"></p>
+
+    <!-- Chat utilisateur (admin reçoit les messages ici) -->
+    <div class="mt-6 w-full max-w-xl">
+      <label for="chat-user-select" class="block mb-2 font-semibold">Choisir un utilisateur :</label>
+      <select id="chat-user-select" class="w-full p-2 border rounded mb-4">
+        <option value="">-- Aucun utilisateur sélectionné --</option>
+      </select>
+
+      <div id="admin-chat" class="p-4 bg-white border border-gray-300 rounded h-64 overflow-y-auto">
+        <h3 class="text-lg font-bold mb-2">Messages utilisateur</h3>
+        <div id="admin-chat-messages" class="space-y-2"></div>
+      </div>
+
+      <form id="admin-chat-form" class="mt-4 flex gap-2">
+        <input type="text" id="admin-chat-input" placeholder="Répondre..." class="flex-1 p-2 border rounded" />
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Envoyer</button>
+      </form>
+    </div>
+
+
+  </section>
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+      const socket = io('http://localhost:5000');
+
+    const authBox = document.getElementById('admin-auth');
+    const dash = document.getElementById('admin-dashboard');
+    const loginMsg = document.getElementById('admin-login-msg');
+    const regMsg = document.getElementById('admin-register-msg');
+    const verifyMsg = document.getElementById('admin-verify-msg');
+
+    // Form toggles
+    const showRegister = () => {
+      document.getElementById('admin-login-form').classList.add('hidden');
+      document.getElementById('admin-register-form').classList.remove('hidden');
+      document.getElementById('admin-auth-title').textContent = 'Admin Inscription';
+    };
+    const showLogin = () => {
+      document.getElementById('admin-register-form').classList.add('hidden');
+      document.getElementById('admin-verify-form').classList.add('hidden');
+      document.getElementById('admin-login-form').classList.remove('hidden');
+      document.getElementById('admin-auth-title').textContent = 'Admin Login';
+    };
+
+    document.getElementById('show-register').onclick = e => { e.preventDefault(); showRegister(); };
+    document.getElementById('show-login').onclick = e => { e.preventDefault(); showLogin(); };
+
+    // API helper
+    const api = (path, opts = {}) => fetch(path, opts).then(r => r.json().then(b => ({ ok: r.ok, body: b })));
+
+    // Register
+    document.getElementById('admin-register-form').onsubmit = async e => {
+      e.preventDefault(); regMsg.textContent = 'Envoi...';
+      const f = e.target;
+      const data = {
+        firstname: f['admin-reg-firstname'].value.trim(),
+        lastname: f['admin-reg-lastname'].value.trim(),
+        email: f['admin-reg-email'].value.trim(),
+        phone: f['admin-reg-phone'].value.trim(),
+        password: f['admin-reg-password'].value.trim(),
+        confirmPassword: f['admin-reg-confirm-password'].value.trim(),
+        role: 'admin'
+      };
+      const { ok, body } = await api('/admin/register', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+      });
+      if (!ok) { regMsg.textContent = body.error; return; }
+      sessionStorage.setItem('adminPendingEmail', data.email);
+      document.getElementById('admin-register-form').classList.add('hidden');
+      document.getElementById('admin-verify-form').classList.remove('hidden');
+      verifyMsg.textContent = ''; regMsg.textContent = 'Code envoyé';
+    };
+
+    // Verify
+    document.getElementById('admin-verify-form').onsubmit = async e => {
+      e.preventDefault(); verifyMsg.textContent = 'Vérification...';
+      const email = sessionStorage.getItem('adminPendingEmail');
+      const code = document.getElementById('admin-verify-code').value.trim();
+      const { ok, body } = await api('/auth/verify-code', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, code })
+      });
+      if (!ok) { verifyMsg.textContent = body.error; return; }
+      verifyMsg.textContent = 'Vérification réussie';
+      showLogin();
+    };
+
+    // Login
+    document.getElementById('admin-login-form').onsubmit = async e => {
+      e.preventDefault(); loginMsg.textContent = 'Connexion...';
+      const email = document.getElementById('admin-email').value.trim();
+      const password = document.getElementById('admin-password').value.trim();
+      const { ok, body } = await api('/admin/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password })
+      });
+      if (!ok) { loginMsg.textContent = body.error; return; }
+      const payload = JSON.parse(atob(body.token.split('.')[1]));
+      if (payload.role !== 'admin') { loginMsg.textContent = 'Accès refusé'; return; }
+
+      localStorage.setItem('adminToken', body.token);
+        localStorage.setItem('adminUser', JSON.stringify(body.user));
+
+      authBox.classList.add('hidden');
+      dash.classList.remove('hidden');
+      loadUsers();
+    };
+
+    // Logout
+    document.getElementById('btn-logout-admin').onclick = () => {
+      localStorage.removeItem('adminToken');
+      dash.classList.add('hidden');
+      authBox.classList.remove('hidden');
+    };
+
+    // Toggle télétravail
+    async function toggleRemote(id, current) {
+      const token = localStorage.getItem('adminToken');
+      await api(`/admin/users/${id}/remote`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ remoteAllowed: !current })
+      });
+      loadUsers();
+    }
+
+    // Marquer comme absent
+    async function markAbsent(id) {
+      if (!confirm('Marquer ce membre comme absent ?')) return;
+      const token = localStorage.getItem('adminToken');
+      await api('/admin/mark-absent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ userId: id })
+      });
+      loadUsers();
+    }
+
+    // Chargement des utilisateurs
+    async function loadUsers() {
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+      document.getElementById('admin-msg').textContent = 'Chargement...';
+      const { ok, body } = await api('/admin/users', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!ok) {
+        document.getElementById('admin-msg').textContent = body.error;
+        return;
+      }
+      const tbody = document.getElementById('user-list');
+      tbody.innerHTML = '';
+      body.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.className = 'border';
+        tr.innerHTML = `
+          <td class="border px-2 py-1">${u.firstname} ${u.lastname}</td>
+          <td class="border px-2 py-1">${u.email}</td>
+          <td class="border px-2 py-1">${u.status}</td>
+          <td class="border px-2 py-1">${u.date ? new Date(u.date).toLocaleString() : '-'}</td>
+          <td class="border px-2 py-1">${u.phone || '-'}</td>
+          <td class="border px-2 py-1 text-sm space-y-1">
+            <button onclick="toggleRemote('${u._id}',${u.remoteAllowed})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded w-full">
+              ${u.remoteAllowed ? 'Désactiver télétravail' : 'Autoriser télétravail'}
+            </button>
+            <button onclick="markAbsent('${u._id}')" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded w-full">
+              Marquer comme absent
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('admin-msg').textContent = '';
+    }
+
+    document.getElementById('btn-filter').onclick = loadUsers;
+
+    // Auto-login si token valide
+    window.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('adminToken');
+      if (token) {
+        authBox.classList.add('hidden');
+        dash.classList.remove('hidden');
+        loadUsers();
+      }
+    });
+  
+   socket.on('remote-request', ({ userId, firstname, lastname, requestedStatus }) => {
+  console.log('📨 Demande remote reçue de', firstname, lastname);
+
+  const container = document.createElement('div');
+  container.className = 'fixed top-10 right-10 bg-white border border-gray-300 p-4 rounded-lg shadow z-50 max-w-sm animate-fade-in';
+  container.innerHTML = `
+    <h3 class="text-lg font-bold mb-2 text-gray-800">Demande de pointage à distance</h3>
+    <p><strong>${firstname} ${lastname}</strong> souhaite pointer à distance (${requestedStatus === 'present' ? 'Avant 9h45' : 'Après 9h45'}).</p>
+    <div class="mt-4 flex justify-end gap-2">
+      <button class="accept-btn bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Accepter</button>
+      <button class="close-btn bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-500">Fermer</button>
+    </div>
+  `;
+
+  document.body.appendChild(container);
+
+  container.querySelector('.accept-btn').onclick = async () => {
+    try {
+      const res = await fetch('/pointage/approve-remote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, status: requestedStatus })
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert(`✅ Pointage validé pour ${firstname} ${lastname} (${requestedStatus})`);
+      } else {
+        alert(`❌ ${result.error || 'Erreur serveur'}`);
+      }
+    } catch (err) {
+      alert('❌ Erreur réseau');
+    }
+    container.remove();
+  };
+
+  container.querySelector('.close-btn').onclick = () => {
+    container.remove();
+  };
+});
+
+
+
+  </script>
+<script>
+    const chatSelect = document.getElementById('chat-user-select');
+    const chatMessagesBox = document.getElementById('admin-chat-messages');
+    const chatInput = document.getElementById('admin-chat-input');
+    const chatForm = document.getElementById('admin-chat-form');
+
+    const chatHistory = {};
+
+    socket.on('admin-receive-message', ({ firstname, lastname, text, socketId, userId }) => {
+  const label = `${firstname} ${lastname}`;
+
+  if (!chatHistory[socketId]) {
+    chatHistory[socketId] = {
+      userId, // ✅ on sauvegarde le userId associé à ce socketId
+      messages: []
+    };
+
+    const option = document.createElement('option');
+    option.value = socketId;
+    option.textContent = label;
+    chatSelect.appendChild(option);
+  }
+
+  chatHistory[socketId].messages.push({ sender: label, text });
+
+  if (chatSelect.value === socketId) {
+    appendAdminMessage(label, text);
+  }
+});
+
+
+    function appendAdminMessage(sender, msg) {
+      const div = document.createElement('div');
+      div.innerHTML = `<strong>${sender} :</strong> ${msg}`;
+      chatMessagesBox.appendChild(div);
+      chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
+    }
+
+    chatSelect.addEventListener('change', () => {
+      chatMessagesBox.innerHTML = '';
+      const id = chatSelect.value;
+      if (!id || !chatHistory[id]) return;
+      chatHistory[id].forEach(m => appendAdminMessage(m.sender, m.text));
+    });
+
+   chatForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const socketId = chatSelect.value;
+  const message = chatInput.value.trim();
+
+  if (!socketId || !message) return;
+
+  const userId = chatHistory[socketId]?.userId;
+  if (!userId) {
+    alert("❌ Impossible d’envoyer : aucun userId associé.");
+    return;
+  }
+
+  socket.emit('admin-send-message', {
+    socketId,
+    userId, // ✅ nécessaire pour éviter l’erreur
+    text: message
+  });
+
+  chatHistory[socketId].messages.push({ sender: 'Vous', text: message });
+  appendAdminMessage('Vous', message);
+  chatInput.value = '';
+});
+
+  </script>
+</body>
+
+</html>

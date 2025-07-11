@@ -1,0 +1,207 @@
+
+<body class="bg-white text-gray-800">
+
+<section id="home" class="w-full">
+
+  <!-- HEADER -->
+  <header class="bg-gradient-to-r from-green-600 to-emerald-500 text-white shadow">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="text-2xl font-bold">Logwire</div>
+      <nav class="space-x-6 hidden md:block">
+        <a href="#hero" class="hover:underline">Accueil</a>
+        <a href="#about" class="hover:underline">À propos</a>
+        <a href="#testimonials" class="hover:underline">Avis</a>
+        <a href="#contact" class="hover:underline">Contact</a>
+      </nav>
+      <a id="account-btn" href="#" class="bg-white text-green-600 font-semibold px-4 py-2 rounded hover:bg-gray-100 transition">Mon compte</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section id="hero" class="bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 text-white text-center py-24 px-6">
+    <div class="max-w-3xl mx-auto space-y-6">
+      <h1 class="text-5xl font-bold">Bienvenue chez Logwire</h1>
+      <p class="text-xl">Une plateforme simple, rapide et sécurisée pour pointer votre présence en un clic.</p>
+      <a id="sign-in" href="#" class="inline-block bg-white text-green-600 font-semibold px-6 py-3 rounded-xl shadow hover:bg-gray-100 transition">Signer</a>
+    </div>
+  </section>
+
+  <!-- À PROPOS -->
+  <section id="about" class="py-20 bg-white px-6">
+    <div class="max-w-5xl mx-auto text-center space-y-8">
+      <h2 class="text-3xl font-bold">Pourquoi Logwire ?</h2>
+      <p class="text-lg max-w-3xl mx-auto">Logwire simplifie la gestion des présences en milieu éducatif ou professionnel.</p>
+      <div class="grid md:grid-cols-3 gap-6 text-left">
+        <div class="p-6 bg-gray-50 rounded-lg shadow"><h3 class="font-semibold text-green-600 mb-2">Simplicité</h3><p>Un seul clic pour pointer.</p></div>
+        <div class="p-6 bg-gray-50 rounded-lg shadow"><h3 class="font-semibold text-green-600 mb-2">Fiabilité</h3><p>Données sécurisées accessibles.</p></div>
+        <div class="p-6 bg-gray-50 rounded-lg shadow"><h3 class="font-semibold text-green-600 mb-2">Analyse</h3><p>Suivi et rapports automatiques.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TÉMOIGNAGES -->
+  <section id="testimonials" class="bg-gray-100 py-20 px-6">
+    <div class="max-w-5xl mx-auto text-center space-y-10">
+      <h2 class="text-3xl font-bold">Ce que les gens disent</h2>
+      <div class="grid md:grid-cols-3 gap-6 text-left">
+        <div class="bg-white p-6 rounded-lg shadow"><p class="italic">"Gain de temps énorme !"</p><p class="mt-4 font-semibold">– Sarah</p></div>
+        <div class="bg-white p-6 rounded-lg shadow"><p class="italic">"Interface intuitive."</p><p class="mt-4 font-semibold">– Julien</p></div>
+        <div class="bg-white p-6 rounded-lg shadow"><p class="italic">"Plus de feuilles perdues."</p><p class="mt-4 font-semibold">– Anissa</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="py-20 bg-white px-6">
+    <div class="max-w-3xl mx-auto text-center space-y-8">
+      <h2 class="text-3xl font-bold">Nous contacter</h2>
+      <form id="contact-form" class="space-y-4">
+        <input type="text" name="name" placeholder="Nom" class="w-full p-3 border rounded" required />
+        <input type="email" name="email" placeholder="Email" class="w-full p-3 border rounded" required />
+        <textarea name="message" placeholder="Message" class="w-full p-3 border rounded" rows="5" required></textarea>
+        <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700 transition">Envoyer</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- NEWSLETTER -->
+  <section class="bg-gray-100 text-black py-16 px-6">
+    <div class="max-w-2xl mx-auto text-center space-y-6">
+      <h2 class="text-3xl font-bold">Inscrivez-vous à notre newsletter</h2>
+      <p class="text-lg">Recevez les dernières nouveautés par email.</p>
+      <form id="newsletter-form" class="flex flex-col sm:flex-row items-stretch gap-4">
+        <input name="email" type="email" placeholder="Votre email" class="flex-1 p-3 rounded text-gray-800" required />
+        <button type="submit" class="bg-white text-emerald-600 font-semibold px-6 py-3 rounded hover:bg-gray-100 transition">S’inscrire</button>
+      </form>
+    </div>
+  </section>
+
+<!-- ✅ Bannière de cookies -->
+<div id="cookie-banner"
+     class="fixed bottom-5 right-80 max-w-sm w-full bg-green-600 text-white p-4 shadow-lg z-50 rounded-lg hidden transition duration-300 ease-in-out">
+  <div class="flex flex-col gap-3">
+    <p class="text-sm leading-snug">
+      Ce site utilise des cookies pour améliorer votre expérience, mesurer l’audience, et offrir des services tiers.
+      <a href="/politique-cookies.html" class="underline ml-1">En savoir plus</a>.
+    </p>
+    <div class="flex justify-end gap-2">
+      <button id="cookie-accept-all"
+              class="bg-white text-green-700 px-3 py-1.5 rounded text-sm font-medium hover:bg-gray-100">
+        Tout accepter
+      </button>
+      <button id="cookie-decline-all"
+              class="bg-green-800 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-green-700">
+        Refuser
+      </button>
+      <button id="cookie-manage"
+              class="underline text-sm hover:text-gray-100">
+        Gérer
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ✅ Modale de gestion des cookies -->
+<div id="cookie-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+  <div class="bg-white p-6 rounded-lg max-w-md w-full relative">
+    <button id="close-cookie-modal" class="absolute top-2 right-3 text-gray-500 text-xl hover:text-black">&times;</button>
+    <h2 class="text-xl font-bold text-green-600 mb-4">Préférences de cookies</h2>
+    <form id="cookie-preferences-form" class="space-y-3">
+      <label class="flex items-center gap-2">
+        <input type="checkbox" disabled checked class="accent-green-600" />
+        <span>Cookies fonctionnels (obligatoires)</span>
+      </label>
+      <label class="flex items-center gap-2">
+        <input type="checkbox" name="analytics" class="accent-green-600" />
+        <span>Statistiques de visite (Google Analytics, etc.)</span>
+      </label>
+      <label class="flex items-center gap-2">
+        <input type="checkbox" name="marketing" class="accent-green-600" />
+        <span>Publicités personnalisées / Marketing</span>
+      </label>
+      <div class="flex justify-end gap-2 mt-4">
+        <button type="button" class="bg-gray-500 text-white px-4 py-2 rounded" id="cancel-cookie-settings">Annuler</button>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Sauvegarder</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+
+  
+ <!-- FOOTER -->
+  <footer class="bg-gray-900 text-white py-10 px-6">
+    <div class="max-w-6xl mx-auto grid md:grid-cols-4 gap-8">
+      <div>
+        <h2 class="text-2xl font-bold text-green-400 mb-3">Logwire</h2>
+        <p class="text-sm text-gray-300">
+          Suivi intelligent des présences.
+        </p>
+      </div>
+      <div>
+        <h3 class="font-semibold mb-3">Navigation</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="#hero" class="hover:underline">Accueil</a></li>
+          <li><a href="#about" class="hover:underline">À propos</a></li>
+          <li><a href="#testimonials" class="hover:underline">Avis</a></li>
+          <li><a href="#contact" class="hover:underline">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+  <h3 class="font-semibold mb-3">Ressources</h3>
+  <ul class="space-y-2 text-sm">
+    <li><a href="#" class="hover:underline">FAQ</a></li>
+    <li><a href="#" class="hover:underline">Politique de confidentialité</a></li>
+    <li><a href="#" class="hover:underline">Conditions d'utilisation</a></li>
+    <li>
+      <a href="#" onclick="document.getElementById('cookie-banner').classList.remove('hidden')" class="hover:underline">
+        Gérer mes cookies
+      </a>
+    </li>
+  </ul>
+</div>
+
+      <div>
+        <h3 class="font-semibold mb-3">Contact</h3>
+        <ul class="space-y-2 text-sm">
+          <li>Email : <a href="mailto:contact@logwire.com" class="hover:underline">contact@logwire.com</a></li>
+          <li>Téléphone : +33 1 23 45 67 89</li>
+          <li>Adresse : 42 avenue de l’Éducation, Paris</li>
+        </ul>
+      </div>
+    </div>
+    <div class="mt-10 text-center text-xs text-gray-400">© 2025 Logwire. Tous droits réservés.</div>
+  </footer>
+
+  <!-- Bouton "Back to Top" -->
+<button id="back-to-top" title="Remonter en haut"
+  class="hidden fixed bottom-5 right-2 z-50 p-3 rounded-full bg-green-600 text-white shadow-lg hover:bg-gray-800 transition">
+  <i class="fas fa-arrow-up"></i>
+</button>
+
+
+  <!-- CHAT ICON & BOX -->
+  <button id="open-chat-btn" class="fixed bottom-5 left-5 bg-green-600 text-white p-3 rounded-full shadow-lg hover:bg-green-700">
+    <i class="fas fa-comment-dots text-xl"></i>
+  </button>
+
+  <div id="chat-box" class="fixed bottom-20 left-5 w-80 max-w-sm bg-white border border-gray-300 rounded-lg shadow-lg hidden z-50">
+    <div class="flex justify-between items-center p-3 bg-green-600 text-white rounded-t-lg">
+      <span>Chatbot</span>
+      <button id="close-chat-btn" class="text-white"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="chat-messages" class="p-3 h-60 overflow-y-auto space-y-2 text-sm text-gray-800"></div>
+    <form id="chat-form" class="flex border-t border-gray-200">
+      <input id="chat-input" type="text" placeholder="Écrire un message..." class="flex-1 p-2 text-sm focus:outline-none" />
+      <button type="submit" class="bg-green-600 text-white px-4"><i class="fas fa-paper-plane"></i></button>
+    </form>
+  </div>
+
+</section>
+
+
+</body>
+
